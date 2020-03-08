@@ -19,6 +19,10 @@ version_idxs = ['A','B']
 version_idx = 'A'
 visit_dict = {key: 0 for key in version_idxs} # counts donate page visits
 home_visits = 0
+
+#### build the data table to be displayed
+with open('main.csv') as f: 
+        data_df = pd.read_csv(f).reset_index() #TODO: reset index
         
 #### set up a flask app
 app = Flask(__name__)
@@ -48,13 +52,24 @@ def donate_page():
     with open('donate.html') as f:
         return f.read()
 
-@app.route('/browse.html')
-def browse_page():
-    # get arguments like year, *other paramters*
-    # pass these args as items in a list to index the dataframe by column
-    with open('main.csv') as f: # build the df globally to avoid rebuilding
-        data_html = pd.read_csv(f).to_html() #TODO: reset index
-    return "<h1>Checkout this hot data (hehe.. get it? because global warming)!</h1>" + data_html
+@app.route('/browse.<ext>')
+def browse_page(ext='html'):
+    df = data_df
+    qwords = ['cols','rows', 'row'] + list(df.keys())
+    qdict = {key:request.args.get(key) for key in qwords}
+#     # e.g. ?cols=col1&col2&col3?rows=100&1000
+    if qdict['cols'] is not None: # constrain columns
+        df = df[qdict['cols'].split('&')]
+    if qdict['row'] is not None: # constrain rows
+        df = df.iloc[int(qdict['row'])]
+    elif qdict['rows'] is not None:
+        row1,row2 = [int(x) for x in qdict['rows'].split('-')]
+        df = df.iloc[row1:row2]
+    for key in [key for key in qdict if key in df.keys() and qdict[key] is not None]: # constrain remaining rows by column key value
+        df = df[df[key] == qdict[key]]
+#     if ext == 'json':
+#         pass
+    return "<h1>Checkout this hot data (hehe.. get it? because global warming)</h1>" + df.to_html()
     
 #### generate the index.html files
 files = [f for f in os.listdir('.') if 
@@ -68,8 +83,8 @@ for idx in version_idxs:
         for file in files:
             if 'donate' in file:
                 text += f"<a href = '{file}?from={idx}'>{file[:-5]}</a><br /> \n"
-            else: # could use a regex insertion here instead
-                text += f"<a href = '{file}'>{file}</a><br /> \n"     
+            else: # could use a regex insertion here instead?
+                text += f"<a href = '{file}'>{file[:-5]}</a><br /> \n"     
         text += "</p> \t \n</body>\n</html>"
         f.write(text)
     
