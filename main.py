@@ -22,7 +22,7 @@ home_visits = 0
 
 #### build the data table to be displayed
 with open('main.csv') as f: 
-        data_df = pd.read_csv(f).reset_index() #TODO: reset index
+        data_df = pd.read_csv(f)
         
 #### set up a flask app
 app = Flask(__name__)
@@ -61,15 +61,16 @@ def browse_page(ext='html'):
     if qdict['cols'] is not None: # constrain columns
         df = df[qdict['cols'].split('&')]
     if qdict['row'] is not None: # constrain rows
-        df = df.iloc[int(qdict['row'])]
+        df = df.iloc[[int(qdict['row'])]]
     elif qdict['rows'] is not None:
         row1,row2 = [int(x) for x in qdict['rows'].split('-')]
         df = df.iloc[row1:row2]
-    for key in [key for key in qdict if key in df.keys() and qdict[key] is not None]: # constrain remaining rows by column key value
-        df = df[df[key] == qdict[key]]
-#     if ext == 'json':
-#         pass
-    return "<h1>Checkout this hot data (hehe.. get it? because global warming)</h1>" + df.to_html()
+#     for key in [key for key in qdict if key in df.keys() and qdict[key] is not None]:
+#         df = df[df[key] == qdict[key]]
+    if ext == 'json':
+        return df.to_json(orient='index')
+    return """<h1>Checkout this hot data</h1> 
+           <h3>(hehe.. get it? because global warming)</h3>""" + df.to_html()
     
 #### generate the index.html files
 files = [f for f in os.listdir('.') if 
