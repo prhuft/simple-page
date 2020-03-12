@@ -1,6 +1,32 @@
 <html>
-        <h1>Welcome to my webpage (version=A)</h1>
-
-        <body><p>Directory</p><ul> <li><a href=/api.html>api</a></li><li><a href=/donate.html>donate</a></li><li><a href=/browse.html>browse</a></li></ul> 
- </body> 
- </html>
+  <head>
+    <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+    <script>
+      function subscribe() {
+        var email = prompt("What is your email?", "????");
+        $.post({
+          type: "POST",
+          url: "email",
+          data: email,
+          contentType: "application/text; charset=utf-8",
+          dataType: "json"
+        }).done(function(data) {
+          alert(data);
+        }).fail(function(data) {
+          alert("POST failed");
+        });
+      }
+    </script>
+  </head>
+  <body>   
+    <h1>Welcome to my webpage!</h1>
+    <h3>Take off your shoes and make yourself comfortable.</h3>  
+    <p>Directory <br /> 
+      <a href = 'api.html'>api</a><br /> 
+      <a href = 'donate.html?from=A'>donate</a><br /> 
+      <a href = 'browse.html'>browse</a><br /> 
+     Want mediocre updates about my mediocre webpage? Subscribe below!
+     <button onclick="subscribe()">Subscribe</button>
+    </p>  
+  </body>
+</html>

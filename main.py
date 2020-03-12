@@ -16,7 +16,6 @@ import logging
 
 #### global vars
 version_idxs = ['A','B']
-version_idx = 'A'
 visit_dict = {key: 0 for key in version_idxs} # counts donate page visits
 home_visits = 0
 
@@ -58,36 +57,32 @@ def browse_page(ext='html'):
     qwords = ['cols','rows', 'row'] + list(df.keys())
     qdict = {key:request.args.get(key) for key in qwords}
 #     # e.g. ?cols=col1&col2&col3?rows=100&1000
-    if qdict['cols'] is not None: # constrain columns
+    if qdict['cols'] is not None: # constrain columns by keys
         df = df[qdict['cols'].split('&')]
-    if qdict['row'] is not None: # constrain rows
+    if qdict['row'] is not None: # select single row
         df = df.iloc[[int(qdict['row'])]]
-    elif qdict['rows'] is not None:
+    elif qdict['rows'] is not None: # constrain rows by integer position
         row1,row2 = [int(x) for x in qdict['rows'].split('-')]
         df = df.iloc[row1:row2]
+    #TODO: make filterable by column value
 #     for key in [key for key in qdict if key in df.keys() and qdict[key] is not None]:
 #         df = df[df[key] == qdict[key]]
     if ext == 'json':
-        return df.to_json(orient='index')
+        rows = [row[1].to_dict() for row in df.iterrows()]
+        if not len(rows) - 1:
+            rows = rows[0]
+        return jsonify(rows)
     return """<h1>Checkout this hot data</h1> 
            <h3>(hehe.. get it? because global warming)</h3>""" + df.to_html()
-    
-#### generate the index.html files
-files = [f for f in os.listdir('.') if 
-         (os.path.isfile(f) and f[-4:]=='html' and 'index' not in f)]
-for idx in version_idxs:
-    with open("index"+ idx +".html", 'w') as f:
-        text = f"""<html>
-             <body>   
-             <h1>Welcome to my webpage (version={idx})</h1>
-             <p>Directory <br /> \n"""
-        for file in files:
-            if 'donate' in file:
-                text += f"<a href = '{file}?from={idx}'>{file[:-5]}</a><br /> \n"
-            else: # could use a regex insertion here instead?
-                text += f"<a href = '{file}'>{file[:-5]}</a><br /> \n"     
-        text += "</p> \t \n</body>\n</html>"
-        f.write(text)
+
+@app.route('/email', methods=["POST"])
+def email():
+    email = str(request.data, "utf-8")
+    if re.match(r"????", email):
+        with open("emails.txt", "a") as f: # open file in append mode
+            ????
+        return jsonify("thanks")
+    return jsonify(????)
     
 if __name__ == '__main__':
     app.run(host="0.0.0.0")
