@@ -1,8 +1,7 @@
+# project: p3
+# submitter: huft
+# partner: none
 """
-project: p3
-submitter: huft
-partner: none
-
 About the data: 
  * Source: https://www.kaggle.com/berkeleyearth/climate-change-earth-surface-temperature-data
  * Description: Data for the global average temperature, from years 1750 to 2015. Data shown here has been truncated to 1000 rows, and so only shows 1932 to 2015. 
@@ -57,6 +56,7 @@ def browse_page(ext='html'):
     df = data_df
     qwords = ['cols','rows', 'row'] + list(df.keys())
     qdict = {key:request.args.get(key) for key in qwords}
+    
 #     # e.g. ?cols=col1&col2&col3?rows=100&1000
     if qdict['cols'] is not None: # constrain columns by keys
         df = df[qdict['cols'].split('&')]
@@ -65,9 +65,15 @@ def browse_page(ext='html'):
     elif qdict['rows'] is not None: # constrain rows by integer position
         row1,row2 = [int(x) for x in qdict['rows'].split('-')]
         df = df.iloc[row1:row2]
-    #TODO: make filterable by column value
     for key in [key for key in qdict if key in df.keys() and qdict[key] is not None]:
-        df = df[df[key] == qdict[key]]
+        # extract numeric comparisons
+        op, val = re.findall(r'^([<>])(\d+)$', qdict[key])[0]
+        if op == '<':
+            df = df[df[key] < float(val)]
+        elif op == '>':
+            df = df[df[key] > float(val)]
+        else:
+            return 
     if ext == 'json':
         rows = [row[1].to_dict() for row in df.iterrows()]
         if not len(rows) - 1:
